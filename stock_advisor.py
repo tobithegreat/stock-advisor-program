@@ -22,8 +22,8 @@ def main_menu(name):
    
     if choice.upper() == "B":
         enter_new_buy(sheet)
-    elif choice.upper == "S":
-        enter_new_sale()
+    elif choice.upper() == "S":
+        enter_new_sell(sheet)
     elif choice.upper() == "V":
         view_trades()
     elif choice.upper() == "Q":
@@ -75,10 +75,54 @@ def enter_new_buy(sheet):
         sheet.cell(row = rowValue, column = 6).value = "${}".format(loss_goal)
         sheet.cell(row = rowValue, column = 7).value = "${}".format(total_cost)
         book.save("Stock_Advisor.xlsx")
-        print("Your trade has now been recorded.\n You will now be redirected to the main menuu.\n")
+        print("Your trade has now been recorded.\n You will now be redirected to the main menu.\n")
         main_menu(name)
         
 
+def enter_new_sell(sheet):
+    """ 
+    Takes in the user's sheet as initial input. Follows with a series of prompts to 
+    located the exact purchase made before, to write the sale to the spreadsheet. 
+    This version will assume the buyer wants to sell all the shares purchased.
+    """
+    stock = raw_input("Which stock are you selling:").strip()
+    if find_stock_row(sheet, stock) != False:
+        rowValue = find_stock_row(sheet, stock)
+        print rowValue
+        print "Your stock is available."
+        price_per_share = float(raw_input("What price per share are you selling at: ").strip())
+        amount_sold = int(raw_input("How many shares are you selling: ").strip())
+        date_sold = dt.datetime.today().strftime("%m/%d/%Y %H:%M")
+        total_revenue = price_per_share * amount_sold
+        confirm = raw_input("CONFIRM WITH Y OR N: \n\n You are now selling {} share(s) of {}, at a price of {} for each share, for a total of {}. Is this correct?: ".format(amount_sold, stock, price_per_share, total_revenue))
+        if confirm.upper() == 'N':
+            print("Ok, we will return to main menu. ")
+            main_menu(name)
+        elif confirm.upper() == 'Y':
+            print("Writing to spreadsheet.")
+            total_cost = sheet.cell(row = 2, column = 7).value
+            print total_cost
+            net_gain = total_revenue - float(total_cost.replace("$", ""))
+            sheet.cell(row = rowValue, column = 8).value = "${}".format(price_per_share)
+            sheet.cell(row = rowValue, column = 9).value = amount_sold
+            sheet.cell(row = rowValue, column = 10).value = date_sold
+            sheet.cell(row = rowValue, column = 11).value = "${}".format(total_revenue)
+            sheet.cell(row = rowValue, column = 12).value = "${}".format(net_gain)
+
+            book.save("Stock_Advisor.xlsx")
+            print("Your sale has now been recorded.\n You will now be redirected to the main menu.\n")
+            main_menu(name)
+
+    elif find_stock_row(sheet, stock) == False:
+        print("Sorry, that name is not present in your records. You will be redirected to main menu")
+        main_menu(name)
+
+def find_stock_row(sheet, stock):
+    for row in sheet.iter_rows():
+        for cell in row:
+            if cell.value == stock:
+                return cell.row
+    return False
 
 def view_trades(sheet):
     pass
